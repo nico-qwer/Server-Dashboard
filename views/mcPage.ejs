@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" href="/Images/Icon.png">
+    <link rel="stylesheet" href="/styles/style.css">
+    <title>Minecraft Service</title>
+</head>
+
+<body>
+    <div class="header">
+        <a href="/"><img src="/Images/BackArrow.png" alt="back arrow"></a>
+        <h1>Server Dashboard<h1>
+    </div>
+
+    <div class="main">
+        <h2>Minecraft Server</h2>
+        <div class="services-container">
+            <div class="service">
+                <img src="/Images/MinecraftIcon.png" alt="service icon">
+                <div>
+                    <h2>Basic Info</h2>
+                    <p>Online players: <%= numberPlayers %>
+                    </p>
+                    <p>Version: <%= version %>
+                    </p>
+                    <p>IP address: <%= IP %>
+                    </p>
+                </div>
+            </div>
+            <div class="service">
+                <img src="/Images/Players.png" alt="service icon">
+                <div>
+                    <h2>Online Players</h2>
+                    <%-players%>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</html>
