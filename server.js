@@ -15,26 +15,36 @@ app.get("/", async (req, res) => {
 
     let numberPlayers
     let version
+    let online
 
     await GetMCServerStatus()
         .then(apiRes => apiRes.json())
         .then(data => {
-            numberPlayers = data.players.online.toString() + " / " + data.players.max.toString()
-            version = data.version.name_clean
+            online = data.online
+            if (online === false) {
+                numberPlayers = ""
+                version = ""
+                online = "<span style=\"color: red;\">Offline</span>"
+            }
+            else {
+                numberPlayers = data.players.online.toString() + " / " + data.players.max.toString()
+                version = data.version.name_clean
+                online = "Online"
+            }
         })
-
 
     let ramPercent = Math.round((os.totalmem() - os.freemem()) / os.totalmem() * 10000) / 100
     let ramUsed = Math.round((os.totalmem() - os.freemem()) / (1024 * 1024 * 1024) * 100) / 100
 
     res.render("index", {
         ramPercent: ramPercent, ramUsed: ramUsed, uptime: os.uptime().toString().toDDHH(),
-        numberPlayers: numberPlayers, version: version
+        online: online, numberPlayers: numberPlayers, version: version
     })
 })
 
 app.get("/minecraft", async (req, res) => {
 
+    let online
     let numberPlayers
     let version
     let playersArray
@@ -43,10 +53,22 @@ app.get("/minecraft", async (req, res) => {
     await GetMCServerStatus()
         .then(apiRes => apiRes.json())
         .then(data => {
-            numberPlayers = data.players.online.toString() + " / " + data.players.max.toString()
-            version = data.version.name_clean
-            playersArray = data.players.list
+            online = data.online
             serverIp = data.host + ":" + data.port.toString()
+
+            if (online === false) {
+                numberPlayers = ""
+                version = ""
+                playersArray = []
+                online = "<span style=\"color: red;\">Offline</span>"
+            }
+            else {
+                numberPlayers = data.players.online.toString() + " / " + data.players.max.toString()
+                version = data.version.name_clean
+                playersArray = data.players.list
+                online = "Online"
+            }
+
         })
 
     let playersStr = ""
@@ -54,7 +76,7 @@ app.get("/minecraft", async (req, res) => {
     if (playersStr === "") { playersStr = "<p>There are no players online.</p>" }
 
     res.render("mcPage", {
-        numberPlayers: numberPlayers, version: version, IP: serverIp, players: playersStr
+        online: online, numberPlayers: numberPlayers, version: version, IP: serverIp, players: playersStr
     })
 })
 
