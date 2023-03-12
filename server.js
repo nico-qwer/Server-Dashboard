@@ -72,7 +72,7 @@ app.get("/minecraft", async (req, res) => {
         })
 
     let playersStr = ""
-    for (let i = 0; i < playersArray.length; i++) { playersStr += "<p>" + playersArray[i] + "</p>\n" }
+    for (let i = 0; i < playersArray.length; i++) { playersStr += "<p>" + playersArray[i].name_clean + "</p>\n" }
     if (playersStr === "") { playersStr = "<p>There are no players online.</p>" }
 
     res.render("mcPage", {
