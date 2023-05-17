@@ -13,28 +13,34 @@ app.use(express.static(__dirname + '/public'))
 
 app.get("/", async (req, res) => {
 
-    let numberPlayers
-    let version
-    let online
+    let numberPlayers = ""
+    let version = ""
+    let online = "<span style=\"color: red;\">No response</span>"
 
-    await GetMCServerStatus()
-        .then(apiRes => apiRes.json())
-        .then(data => {
-            online = data.online
-            if (online === false) {
-                numberPlayers = ""
-                version = ""
-                online = "<span style=\"color: red;\">Offline</span>"
-            }
-            else {
-                numberPlayers = data.players.online.toString() + " / " + data.players.max.toString()
-                version = data.version.name_clean
-                online = "Online"
-            }
-        })
+    try {
+        await GetMCServerStatus()
+            .then(apiRes => apiRes.json())
+            .then(data => {
+                online = data.online
+                if (online === false) {
+                    numberPlayers = ""
+                    version = ""
+                    online = "<span style=\"color: red;\">Offline</span>"
+                }
+                else {
+                    numberPlayers = data.players.online.toString() + " / " + data.players.max.toString()
+                    version = data.version.name_clean
+                    online = "Online"
+                }
+            })
+    }
+    catch { }
 
-    let ramPercent = Math.round((os.totalmem() - os.freemem()) / os.totalmem() * 10000) / 100
-    let ramUsed = Math.round((os.totalmem() - os.freemem()) / (1024 * 1024 * 1024) * 100) / 100
+    let totalmem = os.totalmem()
+    let freemem = os.freemem()
+
+    let ramPercent = Math.round((totalmem - freemem) / totalmem * 10000) / 100
+    let ramUsed = Math.round((totalmem - freemem) / (1024 * 1024 * 1024) * 100) / 100
 
     res.render("index", {
         ramPercent: ramPercent, ramUsed: ramUsed, uptime: os.uptime().toString().toDDHH(),
@@ -44,32 +50,35 @@ app.get("/", async (req, res) => {
 
 app.get("/minecraft", async (req, res) => {
 
-    let online
-    let numberPlayers
-    let version
-    let playersArray
-    let serverIp
+    let online = "<span style=\"color: red;\">No response</span>"
+    let numberPlayers = ""
+    let version = ""
+    let playersArray = []
+    let serverIp = ""
 
-    await GetMCServerStatus()
-        .then(apiRes => apiRes.json())
-        .then(data => {
-            online = data.online
-            serverIp = data.host + ":" + data.port.toString()
+    try {
+        await GetMCServerStatus()
+            .then(apiRes => apiRes.json())
+            .then(data => {
+                online = data.online
+                serverIp = data.host + ":" + data.port.toString()
 
-            if (online === false) {
-                numberPlayers = ""
-                version = ""
-                playersArray = []
-                online = "<span style=\"color: red;\">Offline</span>"
-            }
-            else {
-                numberPlayers = data.players.online.toString() + " / " + data.players.max.toString()
-                version = data.version.name_clean
-                playersArray = data.players.list
-                online = "Online"
-            }
+                if (online === false) {
+                    numberPlayers = ""
+                    version = ""
+                    playersArray = []
+                    online = "<span style=\"color: red;\">Offline</span>"
+                }
+                else {
+                    numberPlayers = data.players.online.toString() + " / " + data.players.max.toString()
+                    version = data.version.name_clean
+                    playersArray = data.players.list
+                    online = "Online"
+                }
 
-        })
+            })
+    }
+    catch { }
 
     let playersStr = ""
     for (let i = 0; i < playersArray.length; i++) { playersStr += "<p>" + playersArray[i].name_clean + "</p>\n" }
