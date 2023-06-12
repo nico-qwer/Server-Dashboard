@@ -13,24 +13,47 @@ app.use(express.static(__dirname + '/public'))
 
 app.get("/", async (req, res) => {
 
-    let numberPlayers = ""
-    let version = ""
-    let online = "<span style=\"color: red;\">No response</span>"
+    let numberPlayers1 = ""
+    let version1 = ""
+    let online1 = "<span style=\"color: red;\">No response</span>"
+
+    let numberPlayers2 = ""
+    let version2 = ""
+    let online2 = "<span style=\"color: red;\">No response</span>"
 
     try {
-        await GetMCServerStatus()
+        await GetMCServerStatus(1)
             .then(apiRes => apiRes.json())
             .then(data => {
-                online = data.online
-                if (online === false) {
-                    numberPlayers = ""
-                    version = ""
-                    online = "<span style=\"color: red;\">Offline</span>"
+                online1 = data.online
+                if (online1 === false) {
+                    numberPlayers1 = ""
+                    version1 = ""
+                    online1 = "<span style=\"color: red;\">Offline</span>"
                 }
                 else {
-                    numberPlayers = data.players.online.toString() + " / " + data.players.max.toString()
-                    version = data.version.name_clean
-                    online = "Online"
+                    numberPlayers1 = data.players.online.toString() + " / " + data.players.max.toString()
+                    version1 = data.version.name_clean
+                    online1 = "Online"
+                }
+            })
+    }
+    catch { }
+
+    try {
+        await GetMCServerStatus(2)
+            .then(apiRes => apiRes.json())
+            .then(data => {
+                online2 = data.online
+                if (online2 === false) {
+                    numberPlayers2 = ""
+                    version2 = ""
+                    online2 = "<span style=\"color: red;\">Offline</span>"
+                }
+                else {
+                    numberPlayers2 = data.players.online.toString() + " / " + data.players.max.toString()
+                    version2 = data.version.name_clean
+                    online2 = "Online"
                 }
             })
     }
@@ -44,11 +67,12 @@ app.get("/", async (req, res) => {
 
     res.render("index", {
         ramPercent: ramPercent, ramUsed: ramUsed, uptime: os.uptime().toString().toDDHH(),
-        online: online, numberPlayers: numberPlayers, version: version
+        online1: online1, numberPlayers1: numberPlayers1, version1: version1,
+        online2: online2, numberPlayers2: numberPlayers2, version2: version2
     })
 })
 
-app.get("/minecraft", async (req, res) => {
+app.get("/minecraft1", async (req, res) => {
 
     let online = "<span style=\"color: red;\">No response</span>"
     let numberPlayers = ""
@@ -57,7 +81,48 @@ app.get("/minecraft", async (req, res) => {
     let serverIp = ""
 
     try {
-        await GetMCServerStatus()
+        await GetMCServerStatus(1)
+            .then(apiRes => apiRes.json())
+            .then(data => {
+                online = data.online
+                serverIp = data.host + ":" + data.port.toString()
+
+                if (online === false) {
+                    numberPlayers = ""
+                    version = ""
+                    playersArray = []
+                    online = "<span style=\"color: red;\">Offline</span>"
+                }
+                else {
+                    numberPlayers = data.players.online.toString() + " / " + data.players.max.toString()
+                    version = data.version.name_clean
+                    playersArray = data.players.list
+                    online = "Online"
+                }
+
+            })
+    }
+    catch { }
+
+    let playersStr = ""
+    for (let i = 0; i < playersArray.length; i++) { playersStr += "<p>" + playersArray[i].name_clean + "</p>\n" }
+    if (playersStr === "") { playersStr = "<p>There are no players online.</p>" }
+
+    res.render("mcPage", {
+        online: online, numberPlayers: numberPlayers, version: version, IP: serverIp, players: playersStr
+    })
+})
+
+app.get("/minecraft2", async (req, res) => {
+
+    let online = "<span style=\"color: red;\">No response</span>"
+    let numberPlayers = ""
+    let version = ""
+    let playersArray = []
+    let serverIp = ""
+
+    try {
+        await GetMCServerStatus(2)
             .then(apiRes => apiRes.json())
             .then(data => {
                 online = data.online
@@ -90,7 +155,6 @@ app.get("/minecraft", async (req, res) => {
 })
 
 
-
 let port
 if (process.env.STATUS === "prod") { port = process.env.PROD_PORT }
 else if (process.env.STATUS === "dev") { port = process.env.DEV_PORT }
@@ -98,8 +162,17 @@ else if (process.env.STATUS === "dev") { port = process.env.DEV_PORT }
 app.listen(port)
 console.log("Server running on http://localhost:" + port)
 
-function GetMCServerStatus() {
-    return fetch("https://api.mcstatus.io/v2/status/java/" + process.env.MCSERVERIP)
+function GetMCServerStatus(server) {
+    let serverIp = "";
+    if (server === 1) { serverIp = process.env.MCSERVERIP1 }
+    else if (server === 2) { serverIp = process.env.MCSERVERIP2 }
+
+    if (serverIp === "") {
+        console.error("Error. Server IP choice not valid. Choice was " + server.toString());
+        return null;
+    }
+
+    return fetch("https://api.mcstatus.io/v2/status/java/" + serverIp)
 }
 
 String.prototype.toDDHH = function () {
